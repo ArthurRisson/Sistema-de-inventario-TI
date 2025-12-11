@@ -3,5 +3,7 @@ build/
 *.spec
 
 *.db
+*.bak
+*.bak.*
 
 __pycache__/
