@@ -1,4 +1,4 @@
-from tkinter import Tk
+from ttkbootstrap import Window
 from src.database import Database
 from src.services import InventoryService
 from src.ui_main import InventarioApp
@@ -9,7 +9,8 @@ from src.ui_main import InventarioApp
 def main():
 	db = Database("inventario.db")
 	service = InventoryService(db)
-	root = Tk()
+	# Use ttkbootstrap Window and superhero theme for a modern dark UI
+	root = Window(themename="superhero")
 	app = InventarioApp(root, service)
 	try:
 		root.mainloop()

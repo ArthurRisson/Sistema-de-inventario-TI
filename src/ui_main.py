@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+import ttkbootstrap as ttk
+from tkinter import messagebox, filedialog
 import datetime
 import os
 
@@ -13,60 +14,65 @@ class InventarioApp:
 		self.root.title("Inventário")
 		self.service = service
 
-		frm = ttk.Frame(root, padding=10)
+		frm = ttk.Frame(root, padding=15)
 		frm.pack(fill=tk.BOTH, expand=True)
 
 		# Inputs
 		row = 0
-		ttk.Label(frm, text="Tipo:").grid(column=0, row=row, sticky=tk.W)
+		ttk.Label(frm, text="Tipo:").grid(column=0, row=row, sticky=tk.W, padx=6, pady=6)
 		self.entry_tipo = ttk.Entry(frm, width=30)
-		self.entry_tipo.grid(column=1, row=row, sticky=tk.W)
+		self.entry_tipo.grid(column=1, row=row, sticky=tk.W, padx=6, pady=6)
 
-		ttk.Label(frm, text="Marca:").grid(column=2, row=row, sticky=tk.W)
+		ttk.Label(frm, text="Marca:").grid(column=2, row=row, sticky=tk.W, padx=6, pady=6)
 		self.entry_marca = ttk.Entry(frm, width=20)
-		self.entry_marca.grid(column=3, row=row, sticky=tk.W)
+		self.entry_marca.grid(column=3, row=row, sticky=tk.W, padx=6, pady=6)
 
 		row += 1
-		ttk.Label(frm, text="Patrimônio:").grid(column=0, row=row, sticky=tk.W)
+		ttk.Label(frm, text="Patrimônio:").grid(column=0, row=row, sticky=tk.W, padx=6, pady=6)
 		self.entry_patrimonio = ttk.Entry(frm, width=20)
-		self.entry_patrimonio.grid(column=1, row=row, sticky=tk.W)
+		self.entry_patrimonio.grid(column=1, row=row, sticky=tk.W, padx=6, pady=6)
 
-		ttk.Label(frm, text="Setor:").grid(column=2, row=row, sticky=tk.W)
+		ttk.Label(frm, text="Setor:").grid(column=2, row=row, sticky=tk.W, padx=6, pady=6)
 		self.entry_setor = ttk.Entry(frm, width=20)
-		self.entry_setor.grid(column=3, row=row, sticky=tk.W)
+		self.entry_setor.grid(column=3, row=row, sticky=tk.W, padx=6, pady=6)
 
 		row += 1
-		ttk.Label(frm, text="Status:").grid(column=0, row=row, sticky=tk.W)
+		ttk.Label(frm, text="Status:").grid(column=0, row=row, sticky=tk.W, padx=6, pady=6)
 		self.status_combo = ttk.Combobox(frm, values=DEFAULT_STATUSES, state="readonly")
 		self.status_combo.set(DEFAULT_STATUSES[0])
-		self.status_combo.grid(column=1, row=row, sticky=tk.W)
+		self.status_combo.grid(column=1, row=row, sticky=tk.W, padx=6, pady=6)
 
-		add_btn = ttk.Button(frm, text="Adicionar", command=self.adicionar_equipamento)
-		add_btn.grid(column=3, row=row, sticky=tk.E)
+		add_btn = ttk.Button(frm, text="Adicionar", command=self.adicionar_equipamento, bootstyle="success")
+		add_btn.grid(column=3, row=row, sticky=tk.E, padx=6, pady=6)
 
 		# Treeview
 		row += 1
 		cols = ("id", "tipo", "marca", "patrimonio", "setor", "status")
-		self.tree = ttk.Treeview(frm, columns=cols, show="headings", height=10)
+		# Treeview styled as primary
+		self.tree = ttk.Treeview(frm, columns=cols, show="headings", height=10, bootstyle="primary")
 		for c in cols:
 			self.tree.heading(c, text=c.capitalize())
 			self.tree.column(c, width=100)
-		self.tree.grid(column=0, row=row, columnspan=4, pady=10, sticky=tk.NSEW)
+		self.tree.grid(column=0, row=row, columnspan=4, pady=10, padx=6, sticky=tk.NSEW)
 
 		# Scrollbar
 		sb = ttk.Scrollbar(frm, orient=tk.VERTICAL, command=self.tree.yview)
 		self.tree.configure(yscroll=sb.set)
-		sb.grid(column=4, row=row, sticky=tk.NS)
+		sb.grid(column=4, row=row, sticky=tk.NS, padx=4)
 
 		# Actions
 		row += 1
-		btn_frame = ttk.Frame(frm)
+		btn_frame = ttk.Frame(frm, padding=6)
 		btn_frame.grid(column=0, row=row, columnspan=4, sticky=tk.W)
 		# action buttons: place them in separate columns to avoid overlap
-		ttk.Button(btn_frame, text="Excluir", command=self.excluir_equipamento).grid(column=0, row=0, padx=5)
-		ttk.Button(btn_frame, text="Editar", command=self.editar_equipamento).grid(column=1, row=0, padx=5)
-		ttk.Button(btn_frame, text="Exportar CSV", command=self.export_csv).grid(column=2, row=0, padx=5)
-		ttk.Button(btn_frame, text="Backup DB", command=self.backup_db).grid(column=3, row=0, padx=5)
+		del_btn = ttk.Button(btn_frame, text="Excluir", command=self.excluir_equipamento, bootstyle="danger")
+		del_btn.grid(column=0, row=0, padx=6, pady=6)
+		edit_btn = ttk.Button(btn_frame, text="Editar", command=self.editar_equipamento, bootstyle="info")
+		edit_btn.grid(column=1, row=0, padx=6, pady=6)
+		exp_btn = ttk.Button(btn_frame, text="Exportar CSV", command=self.export_csv, bootstyle="secondary")
+		exp_btn.grid(column=2, row=0, padx=6, pady=6)
+		bkp_btn = ttk.Button(btn_frame, text="Backup DB", command=self.backup_db, bootstyle="secondary")
+		bkp_btn.grid(column=3, row=0, padx=6, pady=6)
 
 		frm.columnconfigure(1, weight=1)
 		frm.rowconfigure(row - 1, weight=1)
@@ -187,10 +193,12 @@ class InventarioApp:
 			except Exception as e:
 				messagebox.showerror("Erro", f"Falha ao atualizar: {e}")
 
-		btn_fr = ttk.Frame(dlg)
+		btn_fr = ttk.Frame(dlg, padding=6)
 		btn_fr.grid(column=0, row=5, columnspan=2, pady=10)
-		ttk.Button(btn_fr, text="Salvar", command=_salvar).grid(column=0, row=0, padx=5)
-		ttk.Button(btn_fr, text="Cancelar", command=dlg.destroy).grid(column=1, row=0, padx=5)
+		save_btn = ttk.Button(btn_fr, text="Salvar", command=_salvar, bootstyle="success")
+		save_btn.grid(column=0, row=0, padx=6)
+		cancel_btn = ttk.Button(btn_fr, text="Cancelar", command=dlg.destroy, bootstyle="secondary")
+		cancel_btn.grid(column=1, row=0, padx=6)
 
 	def export_csv(self):
 		default_name = f"inventario_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
