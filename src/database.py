@@ -13,17 +13,29 @@ class Database:
 		with self.conn:
 			self.conn.execute(
 				'''
-CREATE TABLE IF NOT EXISTS equipamentos (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	tipo TEXT NOT NULL,
-	marca TEXT,
-	patrimonio TEXT UNIQUE NOT NULL,
-	setor TEXT,
-	status TEXT NOT NULL
-)
-'''
+				CREATE TABLE IF NOT EXISTS equipamentos (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					tipo TEXT NOT NULL,
+					marca TEXT,
+					patrimonio TEXT UNIQUE NOT NULL,
+					setor TEXT,
+					status TEXT NOT NULL
+				)
+				'''
 			)
-			# índice para buscas por setor
+			self.conn.execute(
+				'''
+				CREATE TABLE IF NOT EXISTS historico (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					equipamento_id INTEGER,
+					data_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+					descricao TEXT,
+					FOREIGN KEY(equipamento_id) REFERENCES equipamentos(id)
+				)
+				'''
+			)
+
+			self.conn.execute('CREATE INDEX IF NOT EXISTS idx_setor ON equipamentos(setor)')
 			self.conn.execute('CREATE INDEX IF NOT EXISTS idx_setor ON equipamentos(setor)')
 
 	def execute(self, query: str, params: Tuple = ()) -> None:

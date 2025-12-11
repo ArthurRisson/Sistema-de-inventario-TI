@@ -3,6 +3,8 @@ import ttkbootstrap as ttk
 from tkinter import messagebox, filedialog
 import datetime
 import os
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from src.models import Equipamento
 from src.services import DEFAULT_STATUSES
@@ -11,13 +13,86 @@ from src.services import DEFAULT_STATUSES
 class InventarioApp:
 	def __init__(self, root, service):
 		self.root = root
-		self.root.title("Inventário")
+		self.root.title("Sistema de Inventário TI")
 		self.service = service
+		self.root.geometry("1000x700")
 
-		frm = ttk.Frame(root, padding=15)
+		self.notebook = ttk.Notebook(root)
+		self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+		self.tab_dash = ttk.Frame(self.notebook)
+		self.notebook.add(self.tab_dash, text="Dashboard")
+		self.tab_crud = ttk.Frame(self.notebook)
+		self.notebook.add(self.tab_crud, text="Gerenciar Equipamentos")
+
+		self.setup_dashboard(self.tab_dash)
+		self.setup_crud(self.tab_crud)
+		self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_change)
+
+	def _on_tab_change(self, event):
+		if self.notebook.index("current") == 0:
+			self.atualizar_graficos()
+
+
+	def setup_dashboard(self, parent):
+		title = ttk.Label(parent, text="Visão Geral do Parque Tecnológico", font=("Helvetica", 16, "bold"))
+		title.pack(pady=20)
+
+		graphs_frame = ttk.Frame(parent)
+		graphs_frame = ttk.Frame(parent)
+		graphs_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+		self.fig1 = Figure(figsize=(5, 4), dpi=100)
+		self.ax1 = self.fig1.add_subplot(111)
+		self.canvas1 = FigureCanvasTkAgg(self.fig1, graphs_frame)
+		self.canvas1.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
+
+		self.fig2 = Figure(figsize=(5, 4), dpi=100)
+		self.ax2 = self.fig2.add_subplot(111)
+		self.canvas2 = FigureCanvasTkAgg(self.fig2, graphs_frame)
+		self.canvas2.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
+
+		btn_refresh = ttk.Button(parent, text="Atualizar Dados", command=self.atualizar_graficos, bootstyle="outline")
+		btn_refresh.pack(pady=10)
+
+	def atualizar_graficos(self):
+		stats_status, stats_setor = self.service.get_dashboard_stats()
+		
+		self.ax1.clear()
+		if stats_status:
+			labels = list(stats_status.keys())
+			sizes = list(stats_status.values())
+			self.ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+			self.ax1.set_title("Equipamentos por Status")
+		else:
+			self.ax1.text(0.5, 0.5, "Sem dados", ha='center')
+			self.ax1.set_title("Equipamentos por Status")
+
+		self.ax2.clear()
+		if stats_setor:
+			setores = list(stats_setor.keys())
+			counts = list(stats_setor.values())
+			bars = self.ax2.bar(setores, counts, color='#4c72b0')
+			self.ax2.set_title("Equipamentos por Setor")
+			self.ax2.set_ylabel("Quantidade")
+			self.ax2.tick_params(axis='x', rotation=45)
+		else:
+			self.ax2.text(0.5, 0.5, "Sem dados", ha='center')
+			self.ax2.set_title("Equipamentos por Setor")
+		
+		self.fig1.tight_layout()
+		self.fig2.tight_layout()
+
+		self.canvas1.draw()
+		self.canvas2.draw()
+
+
+	def setup_crud(self, parent):
+
+		frm = ttk.Frame(parent, padding=15)
 		frm.pack(fill=tk.BOTH, expand=True)
 
-		# Inputs
+		
 		row = 0
 		ttk.Label(frm, text="Tipo:").grid(column=0, row=row, sticky=tk.W, padx=6, pady=6)
 		self.entry_tipo = ttk.Entry(frm, width=30)
@@ -45,26 +120,37 @@ class InventarioApp:
 		add_btn = ttk.Button(frm, text="Adicionar", command=self.adicionar_equipamento, bootstyle="success")
 		add_btn.grid(column=3, row=row, sticky=tk.E, padx=6, pady=6)
 
-		# Treeview
+		search_frame = ttk.Frame(frm)
+		search_frame.grid(column=0, row=row+1, columnspan=4, sticky=tk.EW, pady=10)
+		
+		ttk.Label(search_frame, text="Pesquisar:").pack(side=tk.LEFT, padx=5)
+		self.search_entry = ttk.Entry(search_frame, width=40)
+		self.search_entry.pack(side=tk.LEFT, padx=5)
+		
+		btn_search = ttk.Button(search_frame, text="Buscar", command=self.realizar_busca, bootstyle="info-outline")
+		btn_search.pack(side=tk.LEFT, padx=5)
+		
+		btn_clear = ttk.Button(search_frame, text="Limpar", command=self.listar_equipamentos, bootstyle="secondary-outline")
+		btn_clear.pack(side=tk.LEFT, padx=5)
+		
+		row += 2 
+
 		row += 1
 		cols = ("id", "tipo", "marca", "patrimonio", "setor", "status")
-		# Treeview styled as primary
 		self.tree = ttk.Treeview(frm, columns=cols, show="headings", height=10, bootstyle="primary")
 		for c in cols:
 			self.tree.heading(c, text=c.capitalize())
 			self.tree.column(c, width=100)
 		self.tree.grid(column=0, row=row, columnspan=4, pady=10, padx=6, sticky=tk.NSEW)
 
-		# Scrollbar
 		sb = ttk.Scrollbar(frm, orient=tk.VERTICAL, command=self.tree.yview)
 		self.tree.configure(yscroll=sb.set)
 		sb.grid(column=4, row=row, sticky=tk.NS, padx=4)
 
-		# Actions
 		row += 1
 		btn_frame = ttk.Frame(frm, padding=6)
 		btn_frame.grid(column=0, row=row, columnspan=4, sticky=tk.W)
-		# action buttons: place them in separate columns to avoid overlap
+		
 		del_btn = ttk.Button(btn_frame, text="Excluir", command=self.excluir_equipamento, bootstyle="danger")
 		del_btn.grid(column=0, row=0, padx=6, pady=6)
 		edit_btn = ttk.Button(btn_frame, text="Editar", command=self.editar_equipamento, bootstyle="info")
@@ -79,6 +165,7 @@ class InventarioApp:
 
 		self.listar_equipamentos()
 
+
 	def listar_equipamentos(self):
 		for i in self.tree.get_children():
 			self.tree.delete(i)
@@ -88,6 +175,17 @@ class InventarioApp:
 				self.tree.insert("", tk.END, values=(r.id, r.tipo, r.marca or "", r.patrimonio, r.setor or "", r.status))
 		except Exception as e:
 			messagebox.showerror("Erro", f"Falha ao listar: {e}")
+
+	def realizar_busca(self):
+		termo = self.search_entry.get()
+		for i in self.tree.get_children():
+			self.tree.delete(i)
+		try:
+			rows = self.service.search_general(termo)
+			for r in rows:
+				self.tree.insert("", tk.END, values=(r.id, r.tipo, r.marca or "", r.patrimonio, r.setor or "", r.status))
+		except Exception as e:
+			messagebox.showerror("Erro", f"Falha na busca: {e}")
 
 	def adicionar_equipamento(self):
 		tipo = self.entry_tipo.get().strip()
@@ -126,7 +224,6 @@ class InventarioApp:
 			messagebox.showerror("Erro", f"Erro ao deletar: {e}")
 
 	def editar_equipamento(self):
-		"""Abre um diálogo para editar o equipamento selecionado."""
 		sel = self.tree.selection()
 		if not sel:
 			messagebox.showwarning("Atenção", "Selecione um item na tabela para editar!")
@@ -135,7 +232,6 @@ class InventarioApp:
 		valores = item.get('values')
 		id_equip = valores[0]
 
-		# Obter dados atuais do item (para consistência, buscar da lista do serviço)
 		rows = self.service.list_equipamentos()
 		current = None
 		for r in rows:
@@ -151,7 +247,6 @@ class InventarioApp:
 		dlg.transient(self.root)
 		dlg.grab_set()
 
-		# Fields
 		ttk.Label(dlg, text="Tipo:").grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
 		tipo_e = ttk.Entry(dlg, width=40)
 		tipo_e.grid(column=1, row=0, padx=5, pady=5)
