@@ -7,3 +7,7 @@ build/
 *.bak.*
 
 __pycache__/
+
+
+run_tests.py
+add_bulk.py
