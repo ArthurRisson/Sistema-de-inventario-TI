@@ -4,7 +4,7 @@ Sistema de gerenciamento de ativos de TI desenvolvido em Python com interface gr
 
 ## 📦 Download do Executável
 Disponibilizamos uma versão compilada (`.exe`) pronta para uso, ideal para quem não tem o Python instalado.
-- **[Clique aqui para baixar a versão mais recente](https://github.com/ArthurRisson/Sistema-de-inventario-TI/releases/tag/1.1.2)**
+- **[Clique aqui para baixar a versão mais recente](https://github.com/ArthurRisson/Sistema-de-inventario-TI/releases/tag/1.2)**
 
 > **Nota:** Basta fazer o download e executar o arquivo para abrir o sistema. Lembre-se de manter o arquivo `inventario.db` na mesma pasta do executável.
 
